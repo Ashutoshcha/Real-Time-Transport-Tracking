@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Bus Tracker</title>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    height: 60px;
+    width: 100%;
+    background-color: #FFCC00;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+}
+
+header h1 { margin: 0; font-size: 20px; color: #111; }
+header nav { display: flex; gap: 20px; }
+header nav a { text-decoration: none; color: #111; font-weight: 500; }
+
+#app { display: flex; flex: 1; margin-top: 60px; }
+
+#sidebar {
+    width: 320px;
+    background: #fff;
+    border-right: 1px solid #ddd;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+#sidebar h1 { font-size: 18px; margin-bottom: 10px; }
+#bus-select, #search-input, #filter-select {
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 10px;
+}
+
+.bus-card {
+    border: 1px solid #FFCC00;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #fff8e1;
+}
+
+.bus-card.running { border-left: 5px solid green; }
+.bus-card.delayed { border-left: 5px solid orange; }
+.bus-card.stopped { border-left: 5px solid red; }
+
+#map { flex: 1; }
+
+footer {
+    background: #FFCC00;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+}
+
+#clock { font-weight: bold; margin-bottom: 10px; }
+
+.dark-mode {
+    background: #111;
+    color: #eee;
+}
+.dark-mode header, .dark-mode footer { background: #222; color: #eee; }
+.dark-mode #sidebar { background: #1a1a1a; border-color: #333; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>City Bus Tracker</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="https://www.bus.irctc.co.in/home" target="_blank">Bus Ticket Booking</a>
+    <a href="contact.html" target="_blank">Contact</a>
+    <a href="about.html">About</a>
+    <button id="dark-toggle">🌙</button>
+  </nav>
+</header>
+
+<div id="app">
+  <div id="sidebar">
+    <div id="clock"></div>
+    <h1>Bus Details</h1>
+    <input type="text" id="search-input" placeholder="Search Bus...">
+    <label for="filter-select">Filter by Status:</label>
+    <select id="filter-select">
+      <option value="all">All</option>
+      <option value="running">Running</option>
+      <option value="delayed">Delayed</option>
+      <option value="stopped">Stopped</option>
+    </select>
+    <label for="bus-select">Select Bus:</label>
+    <select id="bus-select">
+      <option value="">-- Select a Bus --</option>
+    </select>
+    <div id="bus-details"></div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<footer>
+  &copy; 2025 InnovateTransit | Made with ❤️ | Last Updated: <span id="last-updated">Just now</span>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Initialize map
+const map = L.map('map').setView([28.6692, 77.4538], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Icons
+const busIcons = {
+  running: L.icon({ iconUrl:'https://raw.githubusercontent.com/cristia-bou/assets/main/bus-green.png', iconSize:[40,40], iconAnchor:[20,20] }),
+  delayed: L.icon({ iconUrl:'https://raw.githubusercontent.com/cristia-bou/assets/main/bus-yellow.png', iconSize:[40,40], iconAnchor:[20,20] }),
+  stopped: L.icon({ iconUrl:'https://raw.githubusercontent.com/cristia-bou/assets/main/bus-red.png', iconSize:[40,40], iconAnchor:[20,20] })
+};
+
+// Routes + Stops
+const route1 = [
+  [28.6692, 77.4538], [28.6720, 77.4560],
+  [28.6750, 77.4600], [28.6780, 77.4580],
+  [28.6810, 77.4620]
+];
+L.polyline(route1, {color:'blue'}).addTo(map);
+route1.forEach((stop,i)=> L.circleMarker(stop,{radius:5,color:'black'}).bindPopup("Stop "+(i+1)).addTo(map));
+
+const buses = [
+  {id:'Bus 101', route: route1, routeIndex:0, lat:28.6692, lng:77.4538, status:'running', speed:0.0001, departure:'09:00', arrival:'09:40'},
+  {id:'Bus 102', route: route1, routeIndex:1, lat:28.6720, lng:77.4560, status:'delayed', speed:0.00007, departure:'09:10', arrival:'09:50'},
+  {id:'Bus 103', route: route1, routeIndex:2, lat:28.6750, lng:77.4600, status:'stopped', speed:0, departure:'09:20', arrival:'10:00'}
+];
+
+const busSelect = document.getElementById('bus-select');
+const busDetailsDiv = document.getElementById('bus-details');
+const filterSelect = document.getElementById('filter-select');
+
+// Sidebar setup
+buses.forEach(bus=>{
+  bus.marker = L.marker([bus.lat, bus.lng], {icon: busIcons[bus.status]}).addTo(map);
+  bus.marker.bindPopup(`<b>${bus.id}</b><br>Status: ${bus.status}`);
+
+  const option = document.createElement('option');
+  option.value = bus.id; option.textContent = bus.id;
+  busSelect.appendChild(option);
+
+  const card = document.createElement('div');
+  card.className = `bus-card ${bus.status}`;
+  card.innerHTML = `<h2>${bus.id}</h2>
+    <p>Status: ${bus.status}</p>
+    <p>Departure: ${bus.departure}</p>
+    <p>Arrival: ${bus.arrival}</p>
+    <p>ETA: <span id="eta-${bus.id}">Calculating...</span></p>`;
+  card.style.display = 'none';
+  busDetailsDiv.appendChild(card);
+  bus.card = card;
+});
+
+// ETA calculation
+function updateETA(){
+  buses.forEach(bus=>{
+    const etaEl = document.getElementById("eta-"+bus.id);
+    if(!etaEl) return;
+    if(bus.status==='stopped'){ etaEl.textContent="Not Moving"; return; }
+    const remaining = ((bus.route.length - bus.routeIndex)*5); // dummy 5 min per stop
+    etaEl.textContent = remaining+" min";
+  });
+}
+setInterval(updateETA, 3000);
+
+// Select bus
+busSelect.addEventListener('change', ()=>{
+  buses.forEach(bus=>{
+    bus.card.style.display = bus.id===busSelect.value?'block':'none';
+    if(bus.id===busSelect.value) map.setView([bus.lat,bus.lng],15);
+  });
+});
+
+// Filter
+filterSelect.addEventListener('change', ()=>{
+  buses.forEach(bus=>{
+    const show = filterSelect.value==='all' || bus.status===filterSelect.value;
+    bus.marker.setOpacity(show?1:0);
+    bus.card.style.display='none';
+  });
+});
+
+// Search
+document.getElementById('search-input').addEventListener('input', e=>{
+  const q = e.target.value.toLowerCase();
+  buses.forEach(bus=>{
+    bus.marker.setOpacity(bus.id.toLowerCase().includes(q)?1:0);
+  });
+});
+
+// Animate buses
+function animate(){
+  buses.forEach(bus=>{
+    if(bus.status!=='stopped'){
+      const nextIndex = (bus.routeIndex+1)%bus.route.length;
+      const [curLat,curLng] = bus.route[bus.routeIndex];
+      const [nextLat,nextLng] = bus.route[nextIndex];
+      bus.lat += (nextLat-curLat)*bus.speed;
+      bus.lng += (nextLng-curLng)*bus.speed;
+      bus.marker.setLatLng([bus.lat,bus.lng]);
+      if(Math.abs(bus.lat-nextLat)<0.0001 && Math.abs(bus.lng-nextLng)<0.0001){
+        bus.routeIndex = nextIndex;
+        bus.lat=nextLat; bus.lng=nextLng;
+      }
+    }
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Dark mode toggle
+document.getElementById('dark-toggle').addEventListener('click',()=>{
+  document.body.classList.toggle('dark-mode');
+});
+
+// Clock + Last updated
+function updateClock(){
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+}
+setInterval(updateClock,1000);
+updateClock();
+</script>
+</body>
+</html>

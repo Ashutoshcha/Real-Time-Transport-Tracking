@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Bus Tracker - Home</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(135deg, #FFCC00, #FFD84D);
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #111;
+      color: #fff;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { margin: 0; font-size: 22px; }
+    header nav a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 12px;
+      font-weight: 500;
+    }
+    header nav a:hover { text-decoration: underline; }
+
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+    }
+    .hero h2 {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      font-size: 18px;
+      max-width: 600px;
+      margin-bottom: 30px;
+    }
+    .hero button {
+      background: #111;
+      color: #fff;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .hero button:hover {
+      background: #333;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+      gap: 20px;
+      padding: 40px;
+      background: #fff;
+      color: #111;
+    }
+    .feature-card {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .feature-card h3 { margin: 10px 0; }
+
+    footer {
+      text-align: center;
+      padding: 12px;
+      background: #111;
+      color: #fff;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>City Bus Tracker</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="index.html">Tracker</a>
+    <a href="contact.html">Contact</a>
+    <a href="#">About</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h2>Track Your City Buses in Real-Time 🚍</h2>
+  <p>Welcome to InnovateTransit. Our platform lets you track buses in real-time, see their routes, status, and estimated arrival times with ease.</p>
+  <button onclick="location.href='index.html'">Go to Tracker</button>
+</section>
+
+<section class="features">
+  <div class="feature-card">
+    <h3>🛰 Real-Time Tracking</h3>
+    <p>Track your bus live on the city map with smooth animation.</p>
+  </div>
+  <div class="feature-card">
+    <h3>📍 Bus Stops</h3>
+    <p>View bus stops and estimated time of arrival (ETA) at each stop.</p>
+  </div>
+  <div class="feature-card">
+    <h3>⚡ Filters & Search</h3>
+    <p>Filter buses by status or search directly by bus number.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🌙 Dark Mode</h3>
+    <p>Switch between light and dark theme for a better experience.</p>
+  </div>
+</section>
+
+<footer>
+  &copy; 2025 InnovateTransit | Made with ❤️
+</footer>
+
+</body>
+</html>
