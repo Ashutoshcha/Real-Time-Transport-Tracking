@@ -1,87 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>City Bus Tracker</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>City Bus Tracker — Pro</title>
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+<!-- Chart.js for admin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: "Inter", sans-serif;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-}
+  :root{
+    --accent:#FFCC00;
+    --dark:#111;
+    --muted:#666;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Arial;display:flex;flex-direction:column;}
+  header{height:60px;background:var(--accent);display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 2px 6px rgba(0,0,0,.15);position:fixed;top:0;left:0;right:0;z-index:1000}
+  header h1{margin:0;font-size:18px;color:#111}
+  header nav{display:flex;gap:12px;align-items:center}
+  header nav a{color:#111;text-decoration:none;font-weight:600}
+  header nav button{background:transparent;border:0;font-size:18px;cursor:pointer}
 
-header {
-    height: 60px;
-    width: 100%;
-    background-color: #FFCC00;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 40px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    position: fixed;
-    top: 0;
-    z-index: 1000;
-}
-
-header h1 { margin: 0; font-size: 20px; color: #111; }
-header nav { display: flex; gap: 20px; }
-header nav a { text-decoration: none; color: #111; font-weight: 500; }
-
-#app { display: flex; flex: 1; margin-top: 60px; }
-
-#sidebar {
-    width: 320px;
-    background: #fff;
-    border-right: 1px solid #ddd;
-    padding: 16px;
-    overflow-y: auto;
-}
-
-#sidebar h1 { font-size: 18px; margin-bottom: 10px; }
-#bus-select, #search-input, #filter-select {
-    width: 100%;
-    padding: 6px;
-    margin-bottom: 10px;
-}
-
-.bus-card {
-    border: 1px solid #FFCC00;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: #fff8e1;
-}
-
-.bus-card.running { border-left: 5px solid green; }
-.bus-card.delayed { border-left: 5px solid orange; }
-.bus-card.stopped { border-left: 5px solid red; }
-
-#map { flex: 1; }
-
-footer {
-    background: #FFCC00;
-    text-align: center;
-    padding: 10px;
-    font-size: 14px;
-}
-
-#clock { font-weight: bold; margin-bottom: 10px; }
-
-.dark-mode {
-    background: #111;
-    color: #eee;
-}
-.dark-mode header, .dark-mode footer { background: #222; color: #eee; }
-.dark-mode #sidebar { background: #1a1a1a; border-color: #333; }
+  #app{display:flex;flex:1;margin-top:60px;min-height:calc(100vh - 60px)}
+  #sidebar{width:360px;padding:16px;border-right:1px solid #e6e6e6;overflow:auto;background:#fff}
+  #map{flex:1;min-height:400px}
+  h2{margin:6px 0 12px 0}
+  .control-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  select,input{width:100%;padding:8px;border-radius:6px;border:1px solid #ddd}
+  button.btn{background:var(--accent);border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+  #legend{margin-top:8px;padding:8px;background:#fafafa;border-radius:6px;border:1px solid #eee}
+  #live-updates{margin-top:8px;padding:8px;background:#f3f8ff;border-radius:6px;border:1px solid #e0e7ff;max-height:140px;overflow:auto;font-size:13px}
+  .bus-card{background:#fff8e1;border-left:6px solid var(--accent);padding:10px;border-radius:8px;margin-bottom:10px}
+  .bus-card.running{border-left-color:green}
+  .bus-card.delayed{border-left-color:orange}
+  .bus-card.stopped{border-left-color:red}
+  .progress-bar{background:#eee;border-radius:6px;height:8px;overflow:hidden}
+  .progress{height:100%;background:green;width:0}
+  .small{font-size:13px;color:var(--muted)}
+  #admin-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:2000}
+  .modal{width:900px;background:#fff;padding:16px;border-radius:8px;max-height:90vh;overflow:auto}
+  .row{display:flex;gap:12px}
+  .col{flex:1}
+  .chip{display:inline-block;padding:6px 8px;border-radius:999px;background:#fff;border:1px solid #ddd;font-size:13px}
+  footer{background:var(--accent);padding:10px;text-align:center;font-weight:600}
+  /* dark map toggle effect on sidebar */
+  .dark-mode header,.dark-mode footer{background:#222;color:#fff}
+  .dark-mode #sidebar{background:#0f0f0f;color:#ddd;border-color:#333}
+  .voice-btn{background:#111;color:#fff;padding:8px;border-radius:8px;border:0;cursor:pointer}
+  /* arrow (for older code fallback) */
+  .arrow-div{font-size:30px;transform-origin:center center}
 </style>
 </head>
 <body>
@@ -90,162 +61,527 @@ footer {
   <h1>City Bus Tracker</h1>
   <nav>
     <a href="home.html">Home</a>
-    <a href="https://www.bus.irctc.co.in/home" target="_blank">Bus Ticket Booking</a>
-    <a href="contact.html" target="_blank">Contact</a>
+    <a href="index.html">Tracker</a>
     <a href="about.html">About</a>
-    <button id="dark-toggle">🌙</button>
+    <button id="dark-toggle" title="Toggle dark map/theme">🌓</button>
+    <button id="open-admin" title="Open admin dashboard">Admin</button>
   </nav>
 </header>
 
 <div id="app">
-  <div id="sidebar">
-    <div id="clock"></div>
-    <h1>Bus Details</h1>
-    <input type="text" id="search-input" placeholder="Search Bus...">
-    <label for="filter-select">Filter by Status:</label>
-    <select id="filter-select">
-      <option value="all">All</option>
-      <option value="running">Running</option>
-      <option value="delayed">Delayed</option>
-      <option value="stopped">Stopped</option>
-    </select>
-    <label for="bus-select">Select Bus:</label>
-    <select id="bus-select">
-      <option value="">-- Select a Bus --</option>
-    </select>
+  <aside id="sidebar">
+    <div class="control-row">
+      <select id="route-select" title="Choose route">
+        <option value="routeA">Vaishali → Ghaziabad (Main)</option>
+        <option value="routeB">Indirapuram → Kaushambi</option>
+      </select>
+      <button class="btn" id="load-route">Load</button>
+    </div>
+
+    <div class="control-row">
+      <input id="voice-search" placeholder="Voice search (press mic)"/>
+      <button class="voice-btn" id="voice-btn">🎙</button>
+    </div>
+
+    <div class="control-row">
+      <input id="search-input" placeholder="Search bus (e.g. Bus 101)"/>
+      <select id="filter-select">
+        <option value="all">All</option>
+        <option value="running">Running</option>
+        <option value="delayed">Delayed</option>
+        <option value="stopped">Stopped</option>
+      </select>
+    </div>
+
+    <div class="control-row">
+      <select id="bus-select"><option value="">-- Select Bus --</option></select>
+      <button class="btn" id="track-btn">Track</button>
+      <button class="btn" id="replay-btn">Replay</button>
+    </div>
+
+    <h2>Selected Bus</h2>
+    <div id="selected-info" class="small">No bus selected</div>
+
+    <h2>Buses</h2>
     <div id="bus-details"></div>
-  </div>
-  <div id="map"></div>
+
+    <div id="legend">
+      <strong>Legend</strong>
+      <div><span class="chip" style="background:green;color:#fff">Running</span> Green</div>
+      <div><span class="chip" style="background:orange;color:#fff">Delayed</span> Orange</div>
+      <div><span class="chip" style="background:red;color:#fff">Stopped</span> Red</div>
+    </div>
+
+    <h2 style="margin-top:10px">User</h2>
+    <div class="control-row">
+      <button class="btn" id="loc-btn">Show My Location</button>
+      <div id="nearest-stop" class="small">Nearest stop: —</div>
+    </div>
+
+    <h2 style="margin-top:10px">Live Updates</h2>
+    <div id="live-updates"></div>
+
+    <h2 style="margin-top:10px">Weather (placeholder)</h2>
+    <div id="weather" class="small">To enable live weather: add an API key (OpenWeatherMap) and uncomment fetch in code.</div>
+  </aside>
+
+  <main id="map"></main>
 </div>
 
+<!-- Admin modal -->
+<div id="admin-modal"><div class="modal">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h3>Admin Dashboard</h3>
+    <button id="close-admin">Close</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <div class="col"><canvas id="chart1"></canvas></div>
+    <div class="col"><canvas id="chart2"></canvas></div>
+  </div>
+  <div style="margin-top:12px"><strong>Stats:</strong>
+    <div id="admin-stats" class="small"></div>
+  </div>
+</div></div>
+
 <footer>
-  &copy; 2025 InnovateTransit | Made with ❤️ | Last Updated: <span id="last-updated">Just now</span>
+  &copy; 2025 InnovateTransit — Last updated: <span id="last-updated">Just now</span>
 </footer>
 
+<!-- scripts -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-// Initialize map
-const map = L.map('map').setView([28.6692, 77.4538], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
-// Icons
-const busIcons = {
-  running: L.icon({ iconUrl:'https://raw.githubusercontent.com/cristia-bou/assets/main/bus-green.png', iconSize:[40,40], iconAnchor:[20,20] }),
-  delayed: L.icon({ iconUrl:'https://raw.githubusercontent.com/cristia-bou/assets/main/bus-yellow.png', iconSize:[40,40], iconAnchor:[20,20] }),
-  stopped: L.icon({ iconUrl:'https://raw.githubusercontent.com/cristia-bou/assets/main/bus-red.png', iconSize:[40,40], iconAnchor:[20,20] })
+<script>
+/* ============================
+   Configuration & Utilities
+   ============================ */
+const ROUTES = {
+  routeA: {
+    id: 'routeA',
+    name: 'Vaishali → Ghaziabad',
+    waypoints: [ L.latLng(28.6438,77.3422), L.latLng(28.6692,77.4538) ],
+    color: '#1e90ff'
+  },
+  routeB: {
+    id: 'routeB',
+    name: 'Indirapuram → Kaushambi',
+    // approximate waypoints
+    waypoints: [ L.latLng(28.5669,77.3458), L.latLng(28.5992,77.3272) ],
+    color: '#28a745'
+  }
 };
 
-// Routes + Stops
-const route1 = [
-  [28.6692, 77.4538], [28.6720, 77.4560],
-  [28.6750, 77.4600], [28.6780, 77.4580],
-  [28.6810, 77.4620]
-];
-L.polyline(route1, {color:'blue'}).addTo(map);
-route1.forEach((stop,i)=> L.circleMarker(stop,{radius:5,color:'black'}).bindPopup("Stop "+(i+1)).addTo(map));
+function haversineKm(a,b){
+  const R=6371;
+  const toRad=x=>x*Math.PI/180;
+  const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lng-a.lng);
+  const lat1=toRad(a.lat), lat2=toRad(b.lat);
+  const s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function now(){ return new Date().toLocaleTimeString(); }
+function addUpdate(msg){
+  const box=document.getElementById('live-updates');
+  const p=document.createElement('div'); p.textContent=`${now()} — ${msg}`; box.appendChild(p);
+  box.scrollTop = box.scrollHeight;
+  // also update admin stats log
+  updatesLog.push(msg);
+}
+/* ============================
+   Map init & layers
+   ============================ */
+const map = L.map('map').setView([28.6438,77.3422],12);
+const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'});
+const darkTiles  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',{attribution:'© CARTO'});
+lightTiles.addTo(map);
 
-const buses = [
-  {id:'Bus 101', route: route1, routeIndex:0, lat:28.6692, lng:77.4538, status:'running', speed:0.0001, departure:'09:00', arrival:'09:40'},
-  {id:'Bus 102', route: route1, routeIndex:1, lat:28.6720, lng:77.4560, status:'delayed', speed:0.00007, departure:'09:10', arrival:'09:50'},
-  {id:'Bus 103', route: route1, routeIndex:2, lat:28.6750, lng:77.4600, status:'stopped', speed:0, departure:'09:20', arrival:'10:00'}
-];
-
-const busSelect = document.getElementById('bus-select');
-const busDetailsDiv = document.getElementById('bus-details');
-const filterSelect = document.getElementById('filter-select');
-
-// Sidebar setup
-buses.forEach(bus=>{
-  bus.marker = L.marker([bus.lat, bus.lng], {icon: busIcons[bus.status]}).addTo(map);
-  bus.marker.bindPopup(`<b>${bus.id}</b><br>Status: ${bus.status}`);
-
-  const option = document.createElement('option');
-  option.value = bus.id; option.textContent = bus.id;
-  busSelect.appendChild(option);
-
-  const card = document.createElement('div');
-  card.className = `bus-card ${bus.status}`;
-  card.innerHTML = `<h2>${bus.id}</h2>
-    <p>Status: ${bus.status}</p>
-    <p>Departure: ${bus.departure}</p>
-    <p>Arrival: ${bus.arrival}</p>
-    <p>ETA: <span id="eta-${bus.id}">Calculating...</span></p>`;
-  card.style.display = 'none';
-  busDetailsDiv.appendChild(card);
-  bus.card = card;
+let activeTiles = 'light';
+document.getElementById('dark-toggle').addEventListener('click',()=>{
+  if(activeTiles==='light'){ map.removeLayer(lightTiles); darkTiles.addTo(map); activeTiles='dark'; document.body.classList.add('dark-mode'); }
+  else { map.removeLayer(darkTiles); lightTiles.addTo(map); activeTiles='light'; document.body.classList.remove('dark-mode'); }
 });
 
-// ETA calculation
-function updateETA(){
-  buses.forEach(bus=>{
-    const etaEl = document.getElementById("eta-"+bus.id);
-    if(!etaEl) return;
-    if(bus.status==='stopped'){ etaEl.textContent="Not Moving"; return; }
-    const remaining = ((bus.route.length - bus.routeIndex)*5); // dummy 5 min per stop
-    etaEl.textContent = remaining+" min";
+/* ============================
+   Data: buses, stops, occupancy
+   ============================ */
+// Bus templates (we will create many and assign to routes)
+let buses = [
+  {id:'Bus 101', routeId:'routeA', status:'running', seats:12, capacity:40, departure:'09:00'},
+  {id:'Bus 102', routeId:'routeA', status:'delayed', seats:30, capacity:40, departure:'09:10'},
+  {id:'Bus 103', routeId:'routeA', status:'stopped', seats:40, capacity:40, departure:'09:20'},
+  {id:'Bus 104', routeId:'routeB', status:'running', seats:10, capacity:45, departure:'09:30'},
+  {id:'Bus 105', routeId:'routeB', status:'running', seats:20, capacity:45, departure:'09:40'},
+  {id:'Bus 106', routeId:'routeB', status:'delayed', seats:35, capacity:45, departure:'09:50'},
+  {id:'Bus 107', routeId:'routeA', status:'stopped', seats:40, capacity:40, departure:'10:00'}
+];
+
+const stops = [
+  {name:'Vaishali Metro', lat:28.6438, lng:77.3422},
+  {name:'Mohan Nagar', lat:28.6462, lng:77.3735},
+  {name:'Ghaziabad Bus Adda', lat:28.6643, lng:77.4375},
+  {name:'City Center', lat:28.6692, lng:77.4538},
+  {name:'Indirapuram', lat:28.5669, lng:77.3458},
+  {name:'Kaushambi', lat:28.5992, lng:77.3272}
+];
+
+let stopMarkers = [];
+stops.forEach(s=>{
+  const m = L.marker([s.lat,s.lng]).addTo(map).bindPopup(`<b>${s.name}</b>`);
+  stopMarkers.push({meta:s, marker:m});
+});
+
+/* ============================
+   Arrow icon creation (divIcon)
+   ============================ */
+function arrowIcon(color, rotation=0, size=30){
+  // use triangle char rotated
+  return L.divIcon({
+    html:`<div class="arrow-div" style="color:${color};font-size:${size}px;transform:rotate(${rotation}deg)">&blacktriangleright;</div>`,
+    className:'',
+    iconSize:[size,size],
+    iconAnchor:[size/2,size/2]
   });
 }
-setInterval(updateETA, 3000);
 
-// Select bus
-busSelect.addEventListener('change', ()=>{
-  buses.forEach(bus=>{
-    bus.card.style.display = bus.id===busSelect.value?'block':'none';
-    if(bus.id===busSelect.value) map.setView([bus.lat,bus.lng],15);
+/* ============================
+   Routing: compute each route and keep its polyline coords
+   ============================ */
+const routeControls = {}; // routeId -> control
+const routeCoords = {};   // routeId -> coordinates array (lat,lng objects)
+
+function createRoutingForRoute(route){
+  // create a control and keep it. The control will draw the polyline.
+  const ctrl = L.Routing.control({
+    waypoints: route.waypoints,
+    lineOptions:{styles:[{color:route.color, weight:4}]},
+    addWaypoints: false,
+    draggableWaypoints: false,
+    createMarker: ()=> null
+  }).addTo(map);
+
+  ctrl.on('routesfound', (e)=>{
+    const coords = e.routes[0].coordinates.map(c=>({lat:c.lat,lng:c.lng}));
+    routeCoords[route.id] = coords;
+    addUpdate(`Route ${route.name} loaded with ${coords.length} points`);
+    assignBusesToRoutes(); // once coords ready, (re)assign
   });
-});
 
-// Filter
-filterSelect.addEventListener('change', ()=>{
-  buses.forEach(bus=>{
-    const show = filterSelect.value==='all' || bus.status===filterSelect.value;
-    bus.marker.setOpacity(show?1:0);
-    bus.card.style.display='none';
-  });
-});
+  routeControls[route.id] = ctrl;
+}
 
-// Search
-document.getElementById('search-input').addEventListener('input', e=>{
-  const q = e.target.value.toLowerCase();
-  buses.forEach(bus=>{
-    bus.marker.setOpacity(bus.id.toLowerCase().includes(q)?1:0);
-  });
-});
+/* init routing for both routes */
+createRoutingForRoute(ROUTES.routeA);
+createRoutingForRoute(ROUTES.routeB);
 
-// Animate buses
-function animate(){
-  buses.forEach(bus=>{
-    if(bus.status!=='stopped'){
-      const nextIndex = (bus.routeIndex+1)%bus.route.length;
-      const [curLat,curLng] = bus.route[bus.routeIndex];
-      const [nextLat,nextLng] = bus.route[nextIndex];
-      bus.lat += (nextLat-curLat)*bus.speed;
-      bus.lng += (nextLng-curLng)*bus.speed;
+/* ============================
+   Assign buses to route coords after routes computed
+   ============================ */
+function assignBusesToRoutes(){
+  buses.forEach((bus, idx)=>{
+    const rid = bus.routeId;
+    const coords = routeCoords[rid];
+    if(!coords) return;
+    // start positions distributed along route
+    bus.route = coords;
+    bus.routeIndex = Math.floor((idx*13) % coords.length); // pseudo-distributed start
+    const p = coords[bus.routeIndex];
+    bus.lat = p.lat; bus.lng = p.lng;
+    // speed by status (simulate)
+    bus.speed = bus.status==='running' ? 0.0006 : (bus.status==='delayed'?0.00035:0);
+    // occupancy pct color
+    bus.occupancyPercent = Math.round(bus.seats/bus.capacity*100);
+    // create marker if not exists
+    if(!bus.marker){
+      bus.marker = L.marker([bus.lat,bus.lng], {icon: arrowIcon(statusColor(bus.status), 0, 28)}).addTo(map);
+      bus.marker.bindPopup(`<b>${bus.id}</b><br>${bus.routeId}<br>Status: ${bus.status}`);
+    } else {
       bus.marker.setLatLng([bus.lat,bus.lng]);
-      if(Math.abs(bus.lat-nextLat)<0.0001 && Math.abs(bus.lng-nextLng)<0.0001){
-        bus.routeIndex = nextIndex;
-        bus.lat=nextLat; bus.lng=nextLng;
-      }
+      bus.marker.setIcon(arrowIcon(statusColor(bus.status),0,28));
     }
   });
-  requestAnimationFrame(animate);
+  refreshSidebar();
 }
-animate();
 
-// Dark mode toggle
-document.getElementById('dark-toggle').addEventListener('click',()=>{
-  document.body.classList.toggle('dark-mode');
+/* ============================
+   Utils for status color & fare
+   ============================ */
+function statusColor(status){
+  if(status==='running') return 'green';
+  if(status==='delayed') return 'orange';
+  return 'red';
+}
+function estimateFareKm(km){ // simple tariff
+  const base=10; const perKm=6;
+  return base + Math.ceil(km)*perKm;
+}
+
+/* ============================
+   Sidebar: populate buses & controls
+   ============================ */
+const busSelect = document.getElementById('bus-select');
+const busDetailsDiv = document.getElementById('bus-details');
+function refreshSidebar(){
+  busDetailsDiv.innerHTML = '';
+  busSelect.innerHTML = '<option value="">-- Select Bus --</option>';
+  buses.forEach(bus=>{
+    busSelect.appendChild(new Option(bus.id, bus.id));
+    const card = document.createElement('div'); card.className='bus-card '+bus.status;
+    const occColor = bus.occupancyPercent>80 ? 'red' : (bus.occupancyPercent>50?'orange':'green');
+    const progressPct = bus.route ? Math.round(bus.routeIndex/bus.route.length*100) : 0;
+    card.innerHTML = `<div style="display:flex;justify-content:space-between"><strong>${bus.id}</strong><span class="small">${bus.routeId}</span></div>
+      <div class="small">Status: <b style="color:${statusColor(bus.status)}">${bus.status}</b> &nbsp; | &nbsp; Occupancy: <b style="color:${occColor}">${bus.seats}/${bus.capacity}</b></div>
+      <div class="small">ETA: <span id="eta-${bus.id}">--</span></div>
+      <div class="progress-bar" style="margin-top:6px"><div id="prog-${bus.id}" class="progress" style="width:${progressPct}%"></div></div>
+      <div class="small" style="margin-top:6px">Fare Est.: ₹<span id="fare-${bus.id}">--</span></div>
+    `;
+    busDetailsDiv.appendChild(card);
+    bus.card = card;
+  });
+}
+refreshSidebar();
+
+/* ============================
+   Search / Filter / Voice search
+   ============================ */
+document.getElementById('search-input').addEventListener('input', (e)=>{
+  const q = e.target.value.toLowerCase();
+  buses.forEach(b=>{
+    const show = b.id.toLowerCase().includes(q) || (b.routeId && b.routeId.toLowerCase().includes(q));
+    if(b.marker) b.marker.setOpacity(show?1:0.15);
+  });
+});
+document.getElementById('filter-select').addEventListener('change', (e)=>{
+  const f = e.target.value;
+  buses.forEach(b=> {
+    const show = (f==='all') || (b.status===f);
+    if(b.marker) b.marker.setOpacity(show?1:0.15);
+  });
 });
 
-// Clock + Last updated
-function updateClock(){
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
-  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+/* Voice search using Web Speech API */
+const voiceBtn = document.getElementById('voice-btn');
+const voiceInput = document.getElementById('voice-search');
+let recognition=null;
+if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'en-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = e=>{
+    const text = e.results[0][0].transcript;
+    voiceInput.value = text;
+    doVoiceSearch(text);
+  };
+  recognition.onerror = ()=>{ addUpdate('Voice recognition error') };
 }
-setInterval(updateClock,1000);
-updateClock();
+voiceBtn.addEventListener('click', ()=>{
+  if(!recognition){ alert('Voice not supported in this browser'); return;}
+  recognition.start();
+});
+function doVoiceSearch(text){
+  addUpdate('Voice search: '+text);
+  // simple parse for bus number
+  const q = text.toLowerCase();
+  const found = buses.find(b => b.id.toLowerCase().includes(q) || q.includes(b.id.toLowerCase()));
+  if(found){
+    selectBus(found.id);
+    document.getElementById('selected-info').innerText = `Found ${found.id}`;
+  } else {
+    alert('No bus matched voice query');
+  }
+}
+
+/* ============================
+   Track / Select / Replay
+   ============================ */
+function selectBus(id){
+  const bus = buses.find(b=>b.id===id);
+  if(!bus) return;
+  // show card
+  buses.forEach(b=> b.card.style.display = (b.id===id)?'block':'none');
+  // center map
+  if(bus.marker) map.flyTo(bus.marker.getLatLng(),15);
+  document.getElementById('selected-info').innerHTML = `<b>${bus.id}</b> — ${bus.routeId} — Status: <b style="color:${statusColor(bus.status)}">${bus.status}</b>`;
+}
+document.getElementById('bus-select').addEventListener('change', e=>{
+  selectBus(e.target.value);
+});
+document.getElementById('track-btn').addEventListener('click', ()=>{
+  const id = document.getElementById('bus-select').value; if(!id) return alert('Select a bus first');
+  const bus = buses.find(b=>b.id===id);
+  if(bus && bus.marker) map.panTo(bus.marker.getLatLng());
+});
+
+/* Replay: animate a visible marker along full route for selected bus */
+let replayMarker=null, replayAnim=null;
+document.getElementById('replay-btn').addEventListener('click', ()=>{
+  const id = document.getElementById('bus-select').value; if(!id) return alert('Select a bus first');
+  const bus = buses.find(b=>b.id===id);
+  if(!bus || !bus.route) return alert('Route data not ready for this bus');
+  if(replayMarker){ map.removeLayer(replayMarker); replayMarker=null; cancelAnimationFrame(replayAnim); }
+  const temp = L.circleMarker([bus.lat,bus.lng],{radius:8, color:'blue'}).addTo(map);
+  replayMarker = temp;
+  // play along entire route
+  let i=0;
+  function step(){
+    if(i>=bus.route.length){ i=0; } // loop or stop
+    const p = bus.route[i];
+    replayMarker.setLatLng([p.lat,p.lng]);
+    i++;
+    replayAnim = requestAnimationFrame(step);
+  }
+  step();
+});
+
+/* ============================
+   Compute nearest stop (user location)
+   ============================ */
+document.getElementById('loc-btn').addEventListener('click', ()=>{
+  if(!navigator.geolocation) return alert('Geolocation not supported');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude, lng=pos.coords.longitude;
+    if(window.userMarker) map.removeLayer(window.userMarker);
+    window.userMarker = L.marker([lat,lng],{title:'You'}).addTo(map).bindPopup('You are here').openPopup();
+    map.setView([lat,lng],14);
+    // nearest stop
+    let best=null, bestd=1e9;
+    stops.forEach(s=>{
+      const d = haversineKm({lat,lng},{lat:s.lat,lng:s.lng});
+      if(d<bestd){ bestd=d; best=s; }
+    });
+    document.getElementById('nearest-stop').innerText = `Nearest stop: ${best.name} (${bestd.toFixed(2)} km)`;
+    addUpdate(`User at ${lat.toFixed(4)}, ${lng.toFixed(4)} nearest: ${best.name} ${bestd.toFixed(2)} km`);
+    // highlight stop
+    stopMarkers.forEach(sm=> sm.marker.setOpacity(sm.meta.name===best.name?1:0.6));
+  }, err=> alert('Location denied'));
+});
+
+/* ============================
+   Animate buses along their routes, rotate arrow, ETA, fare update
+   ============================ */
+function animateStep(){
+  buses.forEach(bus=>{
+    if(!bus.route) return;
+    if(bus.status==='stopped'){
+      // reduce slight jitter
+      return;
+    }
+    const nextIndex = (bus.routeIndex+1) % bus.route.length;
+    const cur = bus.route[bus.routeIndex];
+    const next = bus.route[nextIndex];
+    // linear interpolation step
+    bus.lat += (next.lat - cur.lat) * bus.speed;
+    bus.lng += (next.lng - cur.lng) * bus.speed;
+    // rotation angle: compute bearing from current -> next
+    const dy = next.lat - bus.lat;
+    const dx = next.lng - bus.lng;
+    const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    if(bus.marker){
+      bus.marker.setLatLng([bus.lat,bus.lng]);
+      bus.marker.setIcon(arrowIcon(statusColor(bus.status), ang, 28));
+    }
+    // reach next
+    if(Math.hypot(bus.lat - next.lat, bus.lng - next.lng) < 0.00012){
+      bus.routeIndex = nextIndex;
+      bus.lat = next.lat; bus.lng = next.lng;
+    }
+    // ETA & progress & fare update
+    const remainingPoints = (bus.route.length - bus.routeIndex);
+    const estMin = Math.max(1, Math.round(remainingPoints * 0.1)); // simulated
+    const etaEl = document.getElementById('eta-'+bus.id);
+    if(etaEl) etaEl.textContent = estMin + ' min';
+    const progEl = document.getElementById('prog-'+bus.id);
+    if(progEl) progEl.style.width = Math.round(bus.routeIndex / bus.route.length * 100) + '%';
+    const fareEl = document.getElementById('fare-'+bus.id);
+    if(fareEl){
+      // approximate km from current to last point
+      const km = haversineKm({lat:bus.lat,lng:bus.lng}, {lat: bus.route[bus.route.length-1].lat, lng: bus.route[bus.route.length-1].lng});
+      fareEl.textContent = estimateFareKm(km);
+    }
+  });
+  requestAnimationFrame(animateStep);
+}
+requestAnimationFrame(animateStep);
+
+/* ============================
+   Live updates & random events (simulate)
+   ============================ */
+let updatesLog = [];
+setInterval(()=>{
+  // random simulate change: sometimes a running bus gets delayed
+  const b = buses[Math.floor(Math.random()*buses.length)];
+  if(Math.random()<0.12){
+    if(b.status==='running'){ b.status='delayed'; addUpdate(`${b.id} delayed due to traffic`); b.marker && b.marker.setIcon(arrowIcon(statusColor(b.status),0,28)); }
+    else if(b.status==='delayed' && Math.random()<0.4){ b.status='running'; addUpdate(`${b.id} is back on schedule`); b.marker && b.marker.setIcon(arrowIcon(statusColor(b.status),0,28)); }
+  } else {
+    addUpdate(`${b.id} normal update`);
+  }
+  // update sidebar UI occupancy/labels
+  refreshSidebar();
+}, 5000);
+
+/* ============================
+   Route selection & load control
+   ============================ */
+document.getElementById('load-route').addEventListener('click', ()=>{
+  const id = document.getElementById('route-select').value;
+  // show only selected route polyline by toggling controls
+  Object.keys(routeControls).forEach(rid=>{
+    if(rid===id) routeControls[rid].addTo(map);
+    else try{ map.removeControl(routeControls[rid]); } catch(e){}
+  });
+  addUpdate('Loaded route: ' + ROUTES[id].name);
+});
+
+/* ============================
+   Admin modal & charts
+   ============================ */
+const adminBtn = document.getElementById('open-admin');
+const adminModal = document.getElementById('admin-modal');
+const closeAdmin = document.getElementById('close-admin');
+adminBtn.addEventListener('click', ()=> {
+  adminModal.style.display='flex';
+  updateAdminCharts();
+});
+closeAdmin.addEventListener('click', ()=> adminModal.style.display='none');
+
+function updateAdminCharts(){
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  const ctx2 = document.getElementById('chart2').getContext('2d');
+  const statusCounts = buses.reduce((acc,b)=>{ acc[b.status]=(acc[b.status]||0)+1; return acc; },{});
+  const labels = Object.keys(statusCounts);
+  const data = Object.values(statusCounts);
+  new Chart(ctx1, {type:'pie', data:{labels, datasets:[{data, backgroundColor:['green','orange','red']}]}});
+
+  const occ = buses.map(b => Math.round(b.seats/b.capacity*100));
+  new Chart(ctx2, {type:'bar', data:{labels:buses.map(b=>b.id), datasets:[{label:'Occupancy %', data:occ, backgroundColor:'rgba(30,144,255,0.7)'}]}});
+  document.getElementById('admin-stats').innerText = `Total buses: ${buses.length} • Updates: ${updatesLog.length}`;
+}
+
+/* ============================
+   Weather placeholder (optional)
+   ============================ */
+// To enable real weather: sign up to OpenWeatherMap, get API key, and call:
+// fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=YOUR_KEY&units=metric`)
+//   .then(r=>r.json()).then(d=>document.getElementById('weather').innerText = `${d.weather[0].main}, ${d.main.temp}°C`);
+document.getElementById('weather').innerText = 'Weather disabled — add API key to enable live weather.';
+
+/* ============================
+   Initialization: load first route visibility and assign buses when routes ready
+   ============================ */
+setTimeout(()=>{ // give routing controls a small time to populate routesfound events
+  // ensure only routeA visible initially
+  Object.keys(routeControls).forEach(rid=>{
+    if(rid==='routeA') routeControls[rid].addTo(map);
+    else try{ map.removeControl(routeControls[rid]); } catch(e){}
+  });
+}, 800);
+
+/* Keep last-updated clock */
+function tickClock(){ document.getElementById('last-updated').textContent = new Date().toLocaleTimeString(); }
+setInterval(tickClock,1000);
+tickClock();
 </script>
 </body>
 </html>
